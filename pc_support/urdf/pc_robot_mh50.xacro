@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+
+<robot name="pc_robot" xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <!-- Robot -->
+    <xacro:include filename="$(find aims_wc1_support)/urdf/wc1_macro.xacro" />
+
+
+    <!-- End Effector -->
+    <xacro:include filename="$(find pc_support)/urdf/milling_tool_macro.xacro" />
+    
+
+    <!-- Build Kinematic Chain using imported components -->
+    <xacro:wc1 prefix=""/>
+    <xacro:milling_tool prefix=""/>
+
+    <joint name="flange-mount_link" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <parent link="r2_flange"/>
+        <child link="mount_link"/>
+    </joint>
+
+</robot>

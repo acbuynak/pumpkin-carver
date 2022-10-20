@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+<xacro:macro name="milling_tool" params="prefix">
+
+<!-- Xacro Macro for Milling Tool Attachment -->
+
+    <link name="${prefix}mount_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://pc_support/meshes/tool_visual.stl"/>
+            </geometry>
+            <material name="tool">
+                <color rgba="0.65 0.6 0.20 1"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://pc_support/meshes/tool_collision.stl"/>
+            </geometry>
+        </collision>
+    </link>
+ 
+    <!-- TCP defined as the physical center-tip of the spray gun -->
+    <joint name="${prefix}mount_link-mill_tcp" type="fixed">
+        <origin xyz="0.0889 0.1016 0" rpy="${radians(90)} 0 0"/>
+        <parent link="${prefix}mount_link"/>
+        <child link="${prefix}mill_tcp"/> 
+    </joint>
+
+    <link name="${prefix}mill_tcp"/>
+
+</xacro:macro>
+</robot>
