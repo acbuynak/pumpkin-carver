@@ -1,0 +1,2 @@
+- git: {local-name: augmented-reality-painting, uri: 'https://github.com/OSU-AIMS/augmented-reality-painting', version: v1.0.0}
+- git: {local-name: aims-robots-all, uri: 'https://github.com/OSU-AIMS/aims-robots-all'}

@@ -1,0 +1,19 @@
+<launch>
+
+    <!-- Interface Args -->
+    <arg name="robot_ip" value="wc1.aims.lan" />
+    <arg name="controller" value="dx200" />
+
+    <!-- Support Parameters -->
+    <rosparam command="load" file="$(find aims_wc1_support)/config/joint_names_wc1.yaml"/>
+
+    <!-- Setup Motoman Driver Connection -->
+    <include file="$(find aims_wc1_support)/launch/robot_interface_streaming_wc1.launch" >
+        <arg name="robot_ip" value="$(arg robot_ip)"/>
+        <arg name="controller" value="$(arg controller)"/>
+    </include>
+
+    <!-- Launch Execution Server -->
+    <node name="arp_execution_server" pkg="arp_motion_execution" type="arp_execution_server" respawn="false" output="screen"/>
+
+</launch>
