@@ -24,6 +24,21 @@ from arp_msgs.msg import ToolPath, ToolPaths
 
 
 
+#####################
+# Support Functions #
+#####################
+
+def setCanvasOrigin():
+    """
+    TODO
+    """
+    try:
+        return True
+    except:
+        return False
+
+
+
 ########################
 # Tool Path Generators #
 ########################
@@ -158,6 +173,10 @@ def main():
     rospy.logwarn("Waiting for generation and execution servers to come online...")
     rospy.wait_for_service('/arp_planning_server/motion_planner')
     rospy.wait_for_service('/arp_execution_server/execute_motion_plan')
+
+    # Get Start Canvas Origin
+    if not setCanvasOrigin():
+        rospy.logfatal("Unable to set canvas origin.")
 
     # Build Test Request
     test_request = buildToolPathPlanRequest()
