@@ -1,0 +1,21 @@
+<launch>
+
+    <!-- Load universal robot description format (URDF) -->
+    <param name="robot_description" command="xacro '$(find pc_support)/urdf/pc_robot_wc1.xacro'" />
+    <param name="robot_description_semantic" textfile="$(find pc_support)/config/pc_robot.srdf" />
+    
+    <!-- Load Robot Limitations: Kinematics, Joints, Cartesian Limits (if present, overwrite URDF) -->
+    <rosparam param="robot_description_planning" command="load" file="$(find pc_support)/config/joint_limits.yaml"/>
+    <rosparam param="robot_description_planning" command="load" file="$(find pc_support)/config/cartesian_limits.yaml"/>
+    <rosparam param="robot_description_kinematics" command="load" file="$(find pc_support)/config/kinematics.yaml"/>
+
+    <node name="arp_planning_server" pkg="arp_motion_planning_pilz" type="arp_planning_server" respawn="false" output="screen">
+
+        <!-- Load Pilz -->
+        <param name="/planning_plugin" value="pilz_industrial_motion_planner::CommandPlanner"/>
+        <param name="default_planner_config" value="PTP"/>
+        
+    </node>
+
+
+</launch>

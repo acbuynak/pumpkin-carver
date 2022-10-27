@@ -14,7 +14,7 @@
     <xacro:wc1 prefix=""/>
     <xacro:milling_tool prefix=""/>
 
-    <joint name="flange-mount_link" type="fixed">
+    <joint name="r3_flange-mount_link" type="fixed">
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <parent link="r3_flange"/>
         <child link="mount_link"/>

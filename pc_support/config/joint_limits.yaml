@@ -1,0 +1,94 @@
+# joint_limits.yaml allows the dynamics properties specified in the URDF to be overwritten or augmented as needed
+# Specific joint properties can be changed with the keys [max_position, min_position, max_velocity, max_acceleration]
+# Joint limits can be turned off with [has_velocity_limits, has_acceleration_limits]
+joint_limits:
+  r1_joint_1_s:
+    has_velocity_limits: true
+    max_velocity: 3.4383
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r1_joint_2_l:
+    has_velocity_limits: true
+    max_velocity: 3.3161
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r1_joint_3_u:
+    has_velocity_limits: true
+    max_velocity: 3.6652
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r1_joint_4_r:
+    has_velocity_limits: true
+    max_velocity: 7.1558
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r1_joint_5_b:
+    has_velocity_limits: true
+    max_velocity: 7.1558
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r1_joint_6_t:
+    has_velocity_limits: true
+    max_velocity: 10.6465
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r2_joint_5_b:
+    has_velocity_limits: true
+    max_velocity: 2.53072741539
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r2_joint_2_l:
+    has_velocity_limits: true
+    max_velocity: 1.69296937443
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r2_joint_4_r:
+    has_velocity_limits: true
+    max_velocity: 2.53072741539
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r2_joint_1_s:
+    has_velocity_limits: true
+    max_velocity: 2.09439510239
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r2_joint_6_t:
+    has_velocity_limits: true
+    max_velocity: 3.83972435439
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r2_joint_3_u:
+    has_velocity_limits: true
+    max_velocity: 2.00712863979
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r3_joint_1_s:
+    has_velocity_limits: true
+    max_velocity: 3.141
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r3_joint_2_l:
+    has_velocity_limits: true
+    max_velocity: 3.103
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r3_joint_3_u:
+    has_velocity_limits: true
+    max_velocity: 3.106
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r3_joint_4_r:
+    has_velocity_limits: true
+    max_velocity: 4.363
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r3_joint_5_b:
+    has_velocity_limits: true
+    max_velocity: 4.363
+    has_acceleration_limits: true
+    max_acceleration: 3.49
+  r3_joint_6_t:
+    has_velocity_limits: true
+    max_velocity: 6.283
+    has_acceleration_limits: true
+    max_acceleration: 3.49
