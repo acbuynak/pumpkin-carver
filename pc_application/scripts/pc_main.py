@@ -17,6 +17,7 @@ import numpy as np
 import rospy
 from arp_msgs.srv import GenerateMotionPlan, GenerateMotionPlanRequest
 from arp_msgs.srv import ExecuteMotionPlan, ExecuteMotionPlanRequest
+from pc_canvas_locking.srv import WorkpieceLocking, WorkpieceLockingRequest
 
 from geometry_msgs.msg import Pose, PoseStamped, PoseArray
 from geometry_msgs.msg import Point, Quaternion
@@ -25,17 +26,33 @@ from arp_msgs.msg import ToolPath, ToolPaths
 
 
 #####################
+# Control Variables #
+#####################
+
+WKPC_FRAME = "canvas"
+
+
+#####################
 # Support Functions #
 #####################
 
 def setCanvasOrigin():
     """
-    TODO
+    @brief Call workpiece locking service with specified frames to define the
+    position of the pumpkin in the scene
+
+    @return bool
     """
-    try:
-        return True
-    except:
-        return False
+    canvas_client = rospy.ServiceProxy('/locker', WorkpieceLocking)
+
+    req = WorkpieceLockingRequest()
+    req.locator_tcp_frame = "mill_tcp"
+    req.origin_frame = "r3_base_link"
+    req.workpiece_frame = "canvas"
+
+    result = canvas_client(req)
+
+    return result.success
 
 
 
@@ -55,7 +72,6 @@ def pathBlockO(height_inch: float, carve_depth_inch: float) -> PoseArray:
     @return geometry_msgs::PoseArray
     """
 
-    FRAME = "canvas"
     DEPTH = carve_depth_inch * 0.02540000
 
     # Block O Definition (1-inch tall)(convert from inch to meters)
@@ -85,7 +101,7 @@ def pathBlockO(height_inch: float, carve_depth_inch: float) -> PoseArray:
     # PreCarving Standoff
     # standoff from origin, move sidesways, then straight into pumpkin
     seg = PoseArray()
-    seg.header.frame_id = FRAME
+    seg.header.frame_id = WKPC_FRAME
     seg.header.seq = 0
 
     p = Pose()
@@ -103,7 +119,7 @@ def pathBlockO(height_inch: float, carve_depth_inch: float) -> PoseArray:
     ### Segment 1 ###
     # Right Half of Block O
     seg = PoseArray()
-    seg.header.frame_id = FRAME
+    seg.header.frame_id = WKPC_FRAME
     seg.header.seq = 1
 
     p = Pose()
@@ -124,7 +140,7 @@ def pathBlockO(height_inch: float, carve_depth_inch: float) -> PoseArray:
     ### Segment 2 ###
     # Left Half of Block O
     seg = PoseArray()
-    seg.header.frame_id = FRAME
+    seg.header.frame_id = WKPC_FRAME
     seg.header.seq = 1
 
     p = Pose()
@@ -170,7 +186,8 @@ def buildToolPathPlanRequest() -> GenerateMotionPlanRequest:
 def main():
 
     # Wait for Service
-    rospy.logwarn("Waiting for generation and execution servers to come online...")
+    rospy.logwarn("Waiting for workpiece locking, traj generation, and traj execution servers to come online...")
+    rospy.wait_for_service('/locker')
     rospy.wait_for_service('/arp_planning_server/motion_planner')
     rospy.wait_for_service('/arp_execution_server/execute_motion_plan')
 

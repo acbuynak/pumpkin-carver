@@ -1,0 +1,9 @@
+<launch>
+
+    <!-- Start Workpiece/Canvas locking utility -->
+    <node name="server" pkg="pc_canvas_locking" type="server" output="screen" />
+
+    <!-- Start pumpkin carving application -->
+    <node name="pc_main" pkg="pc_application" type="pc_main" output="screen" />
+
+</launch>

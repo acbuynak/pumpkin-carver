@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+#
+# Software License Agreement (Apache 2.0 License)
+# Copyright (c) 2022, A.C. Buynak
+# 
+# Author: A.C. Buynak
+
+# Description:
+# Workpiece pose location locking based on current tool tcp pose.
+#
+
+
+# ROS
+import rospy
+import tf
+import tf2_ros
+from geometry_msgs.msg import TransformStamped
+from pc_canvas_locking.srv import WorkpieceLocking, WorkpieceLockingRequest, WorkpieceLockingResponse
+
+
+##########
+# Server #
+##########
+
+class Server():
+
+    '''Setup'''
+    def __init__(self) -> None:
+        
+        # Public facing service
+        s = rospy.Service('locker', WorkpieceLocking, self.cb_addFrame)
+
+        rospy.loginfo("Workpiece Locking Server is online.")
+
+
+    '''Service Callback to add new workpiece frame'''
+    def cb_addFrame(self, req: WorkpieceLockingRequest) -> WorkpieceLockingResponse:
+
+        # Unpack request
+        SOURCE = req.locator_tcp_frame
+        TARGET = req.origin_frame
+        WKPC = req.workpiece_frame
+
+        # Return variable
+        res = WorkpieceLockingResponse()
+
+        # Operate
+        try:
+            # Collect workpiece pose
+            tf_listen = tf.TransformListener()
+            tf_listen.waitForTransform(TARGET, SOURCE, rospy.Time(0.0), rospy.Duration(2.0))
+            (t, r) = tf_listen.lookupTransform(TARGET, SOURCE, rospy.Time(0))
+
+            # Assemble Message
+            cpose = TransformStamped()
+            cpose.header.stamp = rospy.Time.now()
+            cpose.header.frame_id = TARGET
+            cpose.child_frame_id = WKPC
+
+            cpose.transform.translation.x = t[0]
+            cpose.transform.translation.y = t[1]
+            cpose.transform.translation.z = t[2]
+
+            cpose.transform.rotation.x = r[0]
+            cpose.transform.rotation.y = r[1]
+            cpose.transform.rotation.z = r[2]
+            cpose.transform.rotation.w = r[3]
+
+            # Publish TF
+            broadcast_client = tf2_ros.StaticTransformBroadcaster()
+            broadcast_client.sendTransform(cpose)
+
+            res.success = True
+            rospy.loginfo("Succesfully added new workpiece frame.")
+            
+        except rospy.ROSException as e:
+            res.success = False
+            res.message = e.message
+        
+        # Return
+        return res
+
+
+########
+# Main #
+########
+
+if __name__ == "__main__":
+    rospy.init_node('workpiece_locking_server')
+    Server()
+    rospy.spin()

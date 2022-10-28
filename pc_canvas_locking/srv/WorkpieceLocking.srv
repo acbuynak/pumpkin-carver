@@ -1,0 +1,8 @@
+# Request
+string locator_tcp_frame    # locating frame
+string origin_frame         # reference frame (suggest static origin)
+string workpiece_frame      # new tf frame to create
+---
+# Response
+bool success
+string message
