@@ -10,16 +10,18 @@
 #
 
 # Utilities
-from turtle import position
 import numpy as np
 
 # ROS
 import rospy
+import tf2_ros
+import tf2_geometry_msgs
+
 from arp_msgs.srv import GenerateMotionPlan, GenerateMotionPlanRequest
 from arp_msgs.srv import ExecuteMotionPlan, ExecuteMotionPlanRequest
 from pc_canvas_locking.srv import WorkpieceLocking, WorkpieceLockingRequest
 
-from geometry_msgs.msg import Pose, PoseStamped, PoseArray
+from geometry_msgs.msg import Pose, PoseArray
 from geometry_msgs.msg import Point, Quaternion
 from arp_msgs.msg import ToolPath, ToolPaths
 
@@ -28,8 +30,8 @@ from arp_msgs.msg import ToolPath, ToolPaths
 #####################
 # Control Variables #
 #####################
-
 WKPC_FRAME = "canvas"
+
 
 
 #####################
@@ -53,6 +55,55 @@ def setCanvasOrigin():
     result = canvas_client(req)
 
     return result.success
+
+
+def transformPoseArray(a: PoseArray, new_frame: str) -> PoseArray:
+    """
+    @brief Call workpiece locking service with specified frames to define the
+    position of the pumpkin in the scene
+
+    @param a = Pose Array you wish to convert
+    @param new_frame = Name of new transform you wish to convert to
+    @return bool
+    """
+
+    # Assumes /tf2 topic is already active
+    tf_buffer = tf2_ros.Buffer()
+    listener = tf2_ros.TransformListener(tf_buffer)
+
+    # Sanity check
+    try:
+        tf_buffer.can_transform(a.header.frame_id, new_frame, rospy.Time(0), rospy.Duration(1))
+    except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
+        rospy.logwarn("Unable to get valid transform between provided frames.")
+        raise
+
+    # Setup response structure
+    res = PoseArray()
+    res.header.frame_id = new_frame
+    res.header.seq = a.header.seq
+    res.header.stamp = a.header.stamp
+
+    # Setup stamped pose for loop (must use tf2 specific messages)
+    ps = tf2_geometry_msgs.PoseStamped()
+    ps.header.frame_id = a.header.frame_id
+    ps.header.seq = a.header.seq
+    ps.header.stamp = a.header.stamp
+
+    # Operate
+    try:
+        for p in a.poses:
+
+            #DEBUG. Getting same point input for all poses
+            print(p)
+
+            ps.pose = p
+            psnew = tf_buffer.transform(ps, new_frame, rospy.Duration(1))
+            res.poses.append(psnew.pose)
+            # print(psnew)
+        return res
+    except:
+        raise
 
 
 
@@ -94,68 +145,78 @@ def pathBlockO(height_inch: float, carve_depth_inch: float) -> PoseArray:
     # Setup Tool Path Plan
     tp = ToolPath()
     tp.use_tool = False
-    tp.velocity = 0.05 # m/s
+    tp.velocity = 0.01 # m/s
 
 
     ### Segment 0 ###
     # PreCarving Standoff
     # standoff from origin, move sidesways, then straight into pumpkin
-    seg = PoseArray()
-    seg.header.frame_id = WKPC_FRAME
-    seg.header.seq = 0
+    seg0 = PoseArray()
+    seg0.header.frame_id = WKPC_FRAME
+    seg0.header.seq = 0
 
     p = Pose()
     p.position = Point(0, 0, -0.0254)
-    seg.poses.append(p)
+    p.orientation = Quaternion(0,0,0,1)
+    seg0.poses.append(p)
 
+    p = Pose()
     p.position = Point(half_block[0][0], half_block[0][1], -0.0254)
-    seg.poses.append(p)
+    p.orientation = Quaternion(0,0,0,1)
+    seg0.poses.append(p)
 
-    tp.segments.append(seg)
+    seg0t = transformPoseArray(seg0, "origin_global")
+    tp.segments.append(seg0t)
     tp.pilz_algorithm.append("PTP")
-    del seg, p
+    del seg0, seg0t, p
 
 
     ### Segment 1 ###
     # Right Half of Block O
-    seg = PoseArray()
-    seg.header.frame_id = WKPC_FRAME
-    seg.header.seq = 1
+    seg1 = PoseArray()
+    seg1.header.frame_id = WKPC_FRAME
+    seg1.header.seq = 1
 
-    p = Pose()
-    p.orientation = Quaternion(0, 0, 0, 1)
     for pt in half_block:
-        print(pt)
+        p = Pose()
         p.position = Point(pt[0], pt[1], pt[2]+DEPTH)
-        seg.poses.append(p)
+        p.orientation = Quaternion(0, 0, 0, 1)
+        
+        seg1.poses.append(p)
     
+    p = Pose()
     p.position = Point(half_block[-1][0], half_block[-1][1], -0.0254)
-    seg.poses.append(p)
+    p.orientation = Quaternion(0, 0, 0, 1)
+    seg1.poses.append(p)
 
-    tp.segments.append(seg)
+    seg1t = transformPoseArray(seg1, "origin_global")
+    tp.segments.append(seg1t)
     tp.pilz_algorithm.append("LIN")
-    del seg, p, pt
+    del seg1, seg1t, p, pt
 
 
     ### Segment 2 ###
     # Left Half of Block O
-    seg = PoseArray()
-    seg.header.frame_id = WKPC_FRAME
-    seg.header.seq = 1
+    seg2 = PoseArray()
+    seg2.header.frame_id = WKPC_FRAME
+    seg2.header.seq = 1
 
-    p = Pose()
-    p.orientation = Quaternion(0, 0, 0, 1)
     for pt in half_block:
-        print(pt)
+        p = Pose()
         p.position = Point(pt[0], -pt[1], pt[2]+DEPTH)
-        seg.poses.append(p)
-    
-    p.position = Point(half_block[-1][0], -half_block[-1][1], -0.0254)
-    seg.poses.append(p)
+        p.orientation = Quaternion(0, 0, 0, 1)
 
-    tp.segments.append(seg)
+        seg2.poses.append(p)
+    
+    p = Pose()
+    p.position = Point(half_block[-1][0], -half_block[-1][1], -0.0254)
+    p.orientation = Quaternion(0, 0, 0, 1)
+    seg2.poses.append(p)
+
+    seg2t = transformPoseArray(seg2, "origin_global")
+    tp.segments.append(seg2t)
     tp.pilz_algorithm.append("LIN")
-    del seg, p, pt
+    del seg2, seg2t, p, pt
 
     return tp
 
@@ -168,12 +229,15 @@ def buildToolPathPlanRequest() -> GenerateMotionPlanRequest:
     """
 
     req = GenerateMotionPlanRequest()
+    tps = ToolPaths()
 
     req.motion_group = "mh50_mill_eef"
     req.tcp_frame = "mill_tcp"
 
+    tps.paths.append(pathBlockO(height_inch=6, carve_depth_inch=0))
+
     # TODO: Update path parameters
-    req.tool_paths = pathBlockO(height_inch=6, carve_depth_inch=0)
+    req.tool_paths = tps
 
     return req
 
@@ -224,11 +288,9 @@ def main():
     except rospy.ServiceException as e:
         rospy.logerr("Service call failed: %s", e)
 
-
-    rospy.logwarn("END TEST")
+    rospy.logwarn("DONE PUMPKIN CARVING")
 
 
 if __name__ == "__main__":
-    pathBlockO(height_inch=6, carve_depth_inch=0)
-
-    # main()
+    rospy.init_node("pumpkin_carver")
+    main()
