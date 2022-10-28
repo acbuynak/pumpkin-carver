@@ -51,7 +51,7 @@
  
     <!-- TCP defined as the physical center-tip of the spray gun -->
     <joint name="${prefix}mount_link-mill_tcp" type="fixed">
-        <origin xyz="0.0889 0.1016 0" rpy="-${radians(90)} 0 0"/>
+        <origin xyz="0.0889 0.1016 0" rpy="-${radians(90)} ${radians(180)} 0"/>
         <parent link="${prefix}mount_link"/>
         <child link="${prefix}mill_tcp"/> 
     </joint>
